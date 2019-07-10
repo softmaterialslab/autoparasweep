@@ -118,6 +118,8 @@ class Job_Handler:
         self.ssh_manager = ssh_manager
         
         self.run_servers = True
+
+        self.server_threads = []
         
         self.executable_name = ''
         self.executable_folder = 'program'
@@ -235,29 +237,31 @@ class Job_Handler:
             
     def refresh_ssh_manager(self, ssh_manager = None):
         self.populate_job__drop()
-        if ssh_manager:
-            self.ssh_manager = ssh_manager
-            self.ssh_attributes = []
-            self.ssh_attributes_widgets_items = []
-            if self.ssh_manager.ssh_connections:
-                self.active_ssh_cons = 0
-                for con in self.ssh_manager.ssh_connections:
-                    if con.ssh:
-                        cluster_name_T = con.username.value +'@'+ con.hostname.value 
-                        remote_path = '/gpfs/home/'+con.username.value[0]+'/'+con.username.value[1]+'/'+con.username.value+'/BigRed2/'
-                        self.ssh_attributes.append(ServerAttributes(cluster_name=cluster_name_T, remote_path = remote_path , max_job_per_server=500, ssh_connection= con))
-                        self.ssh_attributes_widgets_items.append(self.ssh_attributes[-1].attributes_widgets)
-                        self.active_ssh_cons += 1
-                self.servers_to_use.value = self.active_ssh_cons
-                if self.active_ssh_cons > 0:
-                    self.servers_to_use.min = 1
-                    self.servers_to_use.max = self.active_ssh_cons
-                    self.enable_all()
-                else:
-                    self.disable_all() 
-                    self.text_area_job_run_logs.value += 'No active SSH connections were found. Please add SSH connection in SSH Manager tab to enable Run Jobs. \n'
-                self.ssh_attributes_widgets.children = self.ssh_attributes_widgets_items
-                
+        if not self.server_threads:
+            if ssh_manager:
+                self.ssh_manager = ssh_manager
+                self.ssh_attributes = []
+                self.ssh_attributes_widgets_items = []
+                if self.ssh_manager.ssh_connections:
+                    self.active_ssh_cons = 0
+                    for con in self.ssh_manager.ssh_connections:
+                        if con.ssh:
+                            cluster_name_T = con.username.value +'@'+ con.hostname.value 
+                            remote_path = '/gpfs/home/'+con.username.value[0]+'/'+con.username.value[1]+'/'+con.username.value+'/BigRed2/'
+                            self.ssh_attributes.append(ServerAttributes(cluster_name=cluster_name_T, remote_path = remote_path , max_job_per_server=500, ssh_connection= con))
+                            self.ssh_attributes_widgets_items.append(self.ssh_attributes[-1].attributes_widgets)
+                            self.active_ssh_cons += 1
+                    self.servers_to_use.value = self.active_ssh_cons
+                    if self.active_ssh_cons > 0:
+                        self.servers_to_use.min = 1
+                        self.servers_to_use.max = self.active_ssh_cons
+                        self.enable_all()
+                    else:
+                        self.disable_all() 
+                        self.text_area_job_run_logs.value += 'No active SSH connections were found. Please add SSH connection in SSH Manager tab to enable Run Jobs. \n'
+                    self.ssh_attributes_widgets.children = self.ssh_attributes_widgets_items
+        else:
+            self.text_area_job_run_logs.value += 'There is an active job execution, therefor resetting ssh connections aborted. \n'        
         
     def refresh_ssh_con_btn_click(self, change):
         self.refresh_ssh_manager(self.ssh_manager)
@@ -386,6 +390,8 @@ class Job_Handler:
                 thread_item.join()
                 self.text_area_job_run_logs.value += '{}: {} stopped \n'.format(name__[0], name__ [-1])
             
+            self.server_threads = []
+
             self.reset_monitor_widget()
             self.enable_all()
 
