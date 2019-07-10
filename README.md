@@ -7,6 +7,6 @@
 
 ## Access
 
-* http://localhost:8181/notebooks/para_sweep_GUI.ipynb
-* http://localhost:8181/apps/para_sweep_GUI.ipynb
+* http://apps.kadupitiya.lk/parasweep/notebooks/para_sweep_GUI.ipynb
+* http://apps.kadupitiya.lk/parasweep/apps/para_sweep_GUI.ipynb
 
