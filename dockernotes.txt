@@ -1,0 +1,11 @@
+1. build it
+docker build -t kadupitiya/para_sweep .
+
+2. Run
+docker run -itd -p 8181:8181 kadupitiya/para_sweep
+
+
+3. Access
+
+http://localhost:8181/notebooks/para_sweep_GUI.ipynb
+http://localhost:8181/apps/para_sweep_GUI.ipynb

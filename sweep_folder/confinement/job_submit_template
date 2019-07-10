@@ -1,0 +1,19 @@
+#! /bin/bash
+#PBS -l	nodes=1:ppn=16,walltime=0:10:00
+#PBS -q	gpu
+#PBS -o	out.log
+#PBS -e	err.log
+#PBS -m	n
+#PBS -N jobName
+
+# below are the modules you will need to compile the code on bigred2 (see README)
+# uncomment the following 3 lines to load the modules at the time of job launch
+module swap PrgEnv-cray PrgEnv-gnu
+module load boost/1.65.0
+module load gsl
+
+cd $PBS_O_WORKDIR
+
+export OMP_NUM_THREADS=16
+
+time aprun -n 1 -d 16 ./md_simulation_confined_ions -S 10000000 -B 0.04 ALL_USER_GIVEN_PARAMS
