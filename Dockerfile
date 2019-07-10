@@ -45,4 +45,4 @@ RUN pip3 install -r requirements.txt
 
 # Launch Notebook server
 EXPOSE 8181
-CMD ["jupyter-notebook", "--ip=0.0.0.0", "--port=8181", "--allow-root", "--no-browser", "--NotebookApp.token=''", "para_sweep_GUI.ipynb"]
+CMD ["jupyter-notebook", "--ip=0.0.0.0", "--port=8181", "--NotebookApp.base_url=parasweep", "--allow-root", "--no-browser", "--NotebookApp.token=''", "para_sweep_GUI.ipynb"]
