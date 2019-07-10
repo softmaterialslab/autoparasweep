@@ -3,6 +3,7 @@
 #PBS -q	gpu
 #PBS -o	out.log
 #PBS -e	err.log
+#PBS -m	n
 #PBS -N jobName
 
 # below are the modules you will need to compile the code on bigred2 (see README)
