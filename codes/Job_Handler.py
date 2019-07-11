@@ -666,6 +666,21 @@ class Job_Handler:
             job_script_name = os.path.join(job_dir, dir_name).replace("\\", "/")
 
             job_para_array = job.split()
+
+            #This is hardcode for shapes issue: Add D para if it is shapes
+            if 'shapes' in sweep_folder_path:
+                if '-R' in job_para_array:
+                    r_value = job_para_array[job_para_array.index('-R')+1]
+                    if str(r_value) == '10':
+                        job_para_array.append('-D')
+                        job_para_array.append('8')
+                    elif str(r_value) == '15':
+                        job_para_array.append('-D')
+                        job_para_array.append('12')
+                    elif str(r_value) == '20':
+                        job_para_array.append('-D')
+                        job_para_array.append('18')
+
             # this is much better replace all parameters as they found
             paramter_string_rep = ""
             for i in range(0, len(job_para_array), 2):

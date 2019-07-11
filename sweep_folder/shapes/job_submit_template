@@ -1,0 +1,22 @@
+#! /bin/bash
+#PBS -l	nodes=4:ppn=16,walltime=24:00:00
+#PBS -q	gpu
+#PBS -o	out.log
+#PBS -e	err.log
+#PBS -m	ae
+#PBS -M	kadu@iu.edu
+#PBS -N jobName
+
+# below are the modules you will need to compile the code on bigred2 (see README)
+# uncomment the following 3 lines to load the modules at the time of job launch
+module swap PrgEnv-cray PrgEnv-gnu
+module	swap	PrgEnv-pgi	PrgEnv-gnu
+module load boost/1.65.0
+module load gsl
+
+cd $PBS_O_WORKDIR
+
+export OMP_NUM_THREADS=16
+
+time aprun -n 4	-d 16 ./np_shape_lab -R USER-R-USER -q USER-q-USER -c USER-c-USER -t USER-t-USER -b USER-b-USER -s USER-s-USER -S 250000 -f 50000 -u 5000 -d 0.001 -T 0.001 -D USER-D-USER -C 5
+

@@ -103,7 +103,7 @@ class Sweep_Json:
         self.job_limit = widgets.BoundedIntText(
                 value=1,
                 min=1,
-                max=10000,
+                max=100000,
                 step=1,
                 description='How many jobs to run: ',
                 style=style,
@@ -239,7 +239,7 @@ class Sweep_Json:
                     if item["type"] == "set":
                         display_str = ""
                         for item_val in item["values"]:
-                            display_str += str(item_val)+ ', '
+                            display_str += str(item_val).strip()+ ', '
 
                         display_str = display_str[:-2] 
 
@@ -248,7 +248,7 @@ class Sweep_Json:
                     elif item["type"] == "range":
                         display_str = ""
                         for item_val in item["range"]:
-                            display_str += str(item_val)+ ', '
+                            display_str += str(item_val).strip()+ ', '
 
                         display_str = display_str[:-2] 
 
@@ -271,7 +271,7 @@ class Sweep_Json:
                 inc_A = item.children[3].value
 
                 if type_A == "set":
-                    self.new_para_dic[name_A] = {"type": "set", "values": values_A.split(',') }
+                    self.new_para_dic[name_A] = {"type": "set", "values": [item.strip() for item in values_A.split(',')] }
 
                 elif type_A == "range":
                     self.new_para_dic[name_A] = {"type": "range", "range": list(map(float, values_A.split(','))), "inc": inc_A }
