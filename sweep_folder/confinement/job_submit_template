@@ -1,9 +1,10 @@
 #! /bin/bash
-#PBS -l	nodes=1:ppn=16,walltime=0:10:00
+#PBS -l	nodes=USER-nodes-USER:ppn=USER-ppn-USER,walltime=0:10:00
 #PBS -q	gpu
 #PBS -o	out.log
 #PBS -e	err.log
-#PBS -m	n
+#PBS -m	ae
+#PBS -M	kadu@iu.edu
 #PBS -N jobName
 
 # below are the modules you will need to compile the code on bigred2 (see README)
@@ -14,6 +15,6 @@ module load gsl
 
 cd $PBS_O_WORKDIR
 
-export OMP_NUM_THREADS=16
+export OMP_NUM_THREADS=USER-ppn-USER
 
-time aprun -n 1 -d 16 ./md_simulation_confined_ions -S 10000000 -B 0.04 ALL_USER_GIVEN_PARAMS
+time aprun -n USER-nodes-USER -d USER-ppn-USER ./md_simulation_confined_ions -S 10000000 -B 0.04 -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -d USER-d-USER -c USER-c-USER

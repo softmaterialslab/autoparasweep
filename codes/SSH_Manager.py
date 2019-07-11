@@ -166,7 +166,7 @@ class SSH_Manager:
     def __init__(self):
         
         self.num_of_ssh_connections = widgets.BoundedIntText(
-            value=2,
+            value=6,
             min=0,
             max=100,
             step=1,
@@ -205,10 +205,10 @@ class SSH_Manager:
         self.header_wigetbox = widgets.HBox([self.num_of_ssh_connections, self.ssh_description, self.sshkey_upload, self.save_btn])
         
         #self.ssh_connections = [SSHAttributes()]
-        self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam')]
+        self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam'), SSHAttributes(username = 'nbrunk'), SSHAttributes(username = 'lm44'), SSHAttributes(username = 'knilsson'), SSHAttributes(username = 'huanshen')]
         
         #self.attributes_widgets = widgets.VBox([self.ssh_connections[0].wigetbox])
-        self.attributes_widgets = widgets.VBox([self.ssh_connections[0].wigetbox, self.ssh_connections[1].wigetbox])
+        self.attributes_widgets = widgets.VBox([item.wigetbox for item in self.ssh_connections])
         
         #self.footer_wigetbox = widgets.HBox([self.gen_config_btn])
 

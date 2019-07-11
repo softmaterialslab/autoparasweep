@@ -144,8 +144,8 @@ class SSH:
             except:
                 pass
             
-            for path, files in ssh_client.sftp_walk(remote_path):
-                root_dir = path.replace(remote_path+'/','')
+            for path, files in self.sftp_walk(remote_path):
+                root_dir = path.replace(remote_path,'')
                 #print("ROOT DIR : " + root_dir)
                 if not files:
                     #print(os.path.join(local_path, root_dir).replace("\\", "/"))
@@ -155,8 +155,10 @@ class SSH:
                         pass
                 else:
                     for file in files:
-                        #print(os.path.join(path, file).replace("\\", "/"))
-                        #print(os.path.join(local_path, root_dir, file).replace("\\", "/"))
-                        self.sftp.get(os.path.join(path, file).replace("\\", "/"), os.path.join(local_path, root_dir, file).replace("\\", "/"))
+                        file_path_ = os.path.join(path, file).replace("\\", "/").strip()
+                        local_file_path_ = os.path.join(local_path, root_dir, file).replace("\\", "/").strip()
+                        #print(file_path_)
+                        #print(local_file_path_)
+                        self.sftp.get(file_path_, local_file_path_)
 
         except Exception as e: print(e)

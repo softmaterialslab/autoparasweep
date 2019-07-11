@@ -233,13 +233,26 @@ class Sweep_Json:
                 self.attributes_widgets.children = []
                 
                 for para in self.sweep_dic:
-                    item = self.sweep_dic.get(para) 
+                    
+                    item = self.sweep_dic.get(para)
+
                     if item["type"] == "set":
-                        
-                        self.attributes_widgets.children += (Attributes(var_name= para, var_type = 'set', var_values=str(item["values"]).replace('[','').replace(']','') , var_inc_value= 0.0).attribute_widget,)
+                        display_str = ""
+                        for item_val in item["values"]:
+                            display_str += str(item_val)+ ', '
+
+                        display_str = display_str[:-2] 
+
+                        self.attributes_widgets.children += (Attributes(var_name= para, var_type = 'set', var_values=display_str, var_inc_value= 0.0).attribute_widget,)
 
                     elif item["type"] == "range":
-                        self.attributes_widgets.children += (Attributes(var_name= para, var_type = 'range', var_values= str(item["range"]).replace('[','').replace(']',''), var_inc_value= item["inc"]).attribute_widget,)
+                        display_str = ""
+                        for item_val in item["range"]:
+                            display_str += str(item_val)+ ', '
+
+                        display_str = display_str[:-2] 
+
+                        self.attributes_widgets.children += (Attributes(var_name= para, var_type = 'range', var_values=display_str, var_inc_value= item["inc"]).attribute_widget,)
 
                 self.sweep_name.value = change.new.split('.')[0] 
             
@@ -258,7 +271,7 @@ class Sweep_Json:
                 inc_A = item.children[3].value
 
                 if type_A == "set":
-                    self.new_para_dic[name_A] = {"type": "set", "values": list(map(float, values_A.split(','))) }
+                    self.new_para_dic[name_A] = {"type": "set", "values": values_A.split(',') }
 
                 elif type_A == "range":
                     self.new_para_dic[name_A] = {"type": "range", "range": list(map(float, values_A.split(','))), "inc": inc_A }
