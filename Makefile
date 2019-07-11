@@ -12,9 +12,9 @@ docker-pull-start:
 	
 	
 install:
-	pip3 install notebook
-	pip3 install ipywidgets  && jupyter nbextension enable --sys-prefix --py widgetsnbextension
-	pip3 install appmode && jupyter nbextension     enable --py --sys-prefix appmode && jupyter serverextension enable --py --sys-prefix appmode
+	pip3 install --user notebook
+	pip3 install --user ipywidgets  && jupyter nbextension enable --sys-prefix --py widgetsnbextension
+	pip3 install --user appmode && jupyter nbextension enable --py --sys-prefix appmode && jupyter serverextension enable --py --sys-prefix appmode
 	mkdir -p ~/.jupyter/custom/                                          && \
      echo "\$('#appmode-leave').hide();" >> ~/.jupyter/custom/custom.js   && \
      echo "\$('#appmode-busy').hide();"  >> ~/.jupyter/custom/custom.js   && \
