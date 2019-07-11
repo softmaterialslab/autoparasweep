@@ -5,8 +5,18 @@
 * docker build -t kadupitiya/para_sweep .
 * docker run -itd -p 8181:8181 kadupitiya/para_sweep
 
-## Access
+## download and run
 
-* http://apps.kadupitiya.lk/parasweep/notebooks/para_sweep_GUI.ipynb
+* docker pull kadupitiya/para_sweep
+* docker run -itd -p 8181:8181 kadupitiya/para_sweep
+
+## install and run in your linux computer
+
+* make install
+* make run
+
+## Access on cloud
+
 * http://apps.kadupitiya.lk/parasweep/apps/para_sweep_GUI.ipynb
+
 
