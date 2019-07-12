@@ -201,7 +201,7 @@ class SSH_Manager:
         
         self.save_btn.on_click(self.save_ssh_key)
 
-        self.connnect_all = widgets.Button(description='Connect all')  
+        self.connnect_all = widgets.Button(description='Connect all') 
 
         self.connnect_all.on_click(self.connnect_all_clicked) 
 
@@ -292,8 +292,12 @@ class SSH_Manager:
         
     def connnect_all_clicked(self, change):
         try:
-
-            self.text_area_for_ssh.value += 'Clicking all connect buttons...\n'
+            if self.connnect_all.description == 'Connnect all':
+                self.connnect_all.description = 'Disconnnect all'
+            elif self.connnect_all.description == 'Disconnnect all'::
+                self.connnect_all.description = 'Connnect all'
+                
+            self.text_area_for_ssh.value += 'Clicking all connect/disconnect buttons...\n'
             for connection_ in self.ssh_connections:
                 connection_.onclick_coonect_btn({})
                 #connection_.wigetbox 
