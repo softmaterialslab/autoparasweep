@@ -294,7 +294,7 @@ class SSH_Manager:
         try:
             if self.connnect_all.description == 'Connnect all':
                 self.connnect_all.description = 'Disconnnect all'
-            elif self.connnect_all.description == 'Disconnnect all'::
+            elif self.connnect_all.description == 'Disconnnect all':
                 self.connnect_all.description = 'Connnect all'
                 
             self.text_area_for_ssh.value += 'Clicking all connect/disconnect buttons...\n'
