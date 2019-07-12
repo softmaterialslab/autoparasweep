@@ -292,10 +292,10 @@ class SSH_Manager:
         
     def connnect_all_clicked(self, change):
         try:
-            if self.connnect_all.description == 'Connnect all':
-                self.connnect_all.description = 'Disconnnect all'
-            elif self.connnect_all.description == 'Disconnnect all':
-                self.connnect_all.description = 'Connnect all'
+            if self.connnect_all.description == 'Connect all':
+                self.connnect_all.description = 'Disconnect all'
+            elif self.connnect_all.description == 'Disconnect all':
+                self.connnect_all.description = 'Connect all'
                 
             self.text_area_for_ssh.value += 'Clicking all connect/disconnect buttons...\n'
             for connection_ in self.ssh_connections:
