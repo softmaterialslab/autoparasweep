@@ -25,7 +25,7 @@ from codes.SSH import SSH
 from codes.BagOfJobs import BagOfJobs
 
 class ServerAttributes:
-    def __init__(self, cluster_name='kadu@bigred2.uits.iu.edu', remote_path = '/gpfs/home/k/a/kadu/BigRed2/', max_job_per_server=500, ssh_connection = None ):
+    def __init__(self, cluster_name='kadu@bigred2.uits.iu.edu', remote_path = '/N/dc2/scratch/kadu/', max_job_per_server=500, ssh_connection = None ):
         
         self.cluster_name = widgets.Text(
             value=cluster_name,
@@ -249,7 +249,7 @@ class Job_Handler:
                     for con in self.ssh_manager.ssh_connections:
                         if con.ssh:
                             cluster_name_T = con.username.value +'@'+ con.hostname.value 
-                            remote_path = '/gpfs/home/'+con.username.value[0]+'/'+con.username.value[1]+'/'+con.username.value+'/BigRed2/'
+                            remote_path = '/N/dc2/scratch/'+con.username.value+'/'
                             self.ssh_attributes.append(ServerAttributes(cluster_name=cluster_name_T, remote_path = remote_path , max_job_per_server=500, ssh_connection= con))
                             self.ssh_attributes_widgets_items.append(self.ssh_attributes[-1].attributes_widgets)
                             self.active_ssh_cons += 1
