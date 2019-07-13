@@ -25,7 +25,7 @@ from codes.SSH import SSH
 from codes.BagOfJobs import BagOfJobs
 
 class ServerAttributes:
-    def __init__(self, cluster_name='kadu@bigred2.uits.iu.edu', remote_path = '/gpfs/home/k/a/kadu/BigRed2/', max_job_per_server=500, ssh_connection = None ):
+    def __init__(self, cluster_name='kadu@bigred2.uits.iu.edu', remote_path = '/N/dc2/scratch/kadu/', max_job_per_server=500, ssh_connection = None ):
         
         self.cluster_name = widgets.Text(
             value=cluster_name,
@@ -180,8 +180,10 @@ class Job_Handler:
         )
         
         self.run_btn = widgets.Button(description='Run')
+
+        self.download_all_check = widgets.Checkbox(value=True, description='Download data as completing', disabled=False)
         
-        self.run_details_widgets = widgets.HBox([self.local_path, self.servers_to_use, self.run_btn])
+        self.run_details_widgets = widgets.HBox([self.local_path, self.servers_to_use, self.run_btn, self.download_all_check])
         
         self.sweep_config_widgets = widgets.VBox([self.load_job_config_att, self.run_details_widgets], layout=group_area_layout)
     
@@ -247,7 +249,7 @@ class Job_Handler:
                     for con in self.ssh_manager.ssh_connections:
                         if con.ssh:
                             cluster_name_T = con.username.value +'@'+ con.hostname.value 
-                            remote_path = '/gpfs/home/'+con.username.value[0]+'/'+con.username.value[1]+'/'+con.username.value+'/BigRed2/'
+                            remote_path = '/N/dc2/scratch/'+con.username.value+'/'
                             self.ssh_attributes.append(ServerAttributes(cluster_name=cluster_name_T, remote_path = remote_path , max_job_per_server=500, ssh_connection= con))
                             self.ssh_attributes_widgets_items.append(self.ssh_attributes[-1].attributes_widgets)
                             self.active_ssh_cons += 1
@@ -266,9 +268,10 @@ class Job_Handler:
     def refresh_ssh_con_btn_click(self, change):
         self.refresh_ssh_manager(self.ssh_manager)
         #self.ssh_attributes_widgets.children = []
+
         
     def populate_job__drop(self):
-        self.all_configs = glob.glob("run-config/*")
+        self.all_configs = glob.glob("run-config/*.json")
         self.pending_job_runs.options = ['None']+ [ item.replace("\\", "/").split('/')[-1].split('.')[0] for item in self.all_configs]
 
         self.all_run_configs = glob.glob("sweep_folder/*")
@@ -320,6 +323,7 @@ class Job_Handler:
             self.run_btn.disabled=True
             self.servers_to_use.disabled=True
             self.pending_job_runs.disabled=True
+            self.download_all_check.disabled = True
                 
         except Exception as e: print(e)  
 
@@ -328,6 +332,7 @@ class Job_Handler:
             self.run_btn.disabled=False
             self.servers_to_use.disabled=False
             self.pending_job_runs.disabled=False
+            self.download_all_check.disabled = False
             
             self.reset_all()
                 
@@ -361,9 +366,11 @@ class Job_Handler:
                             if self.generated_job_dic['run_index'] == 0:
                                 self.run_btn.description='Running'
                                 self.run_btn.disabled =True
+                                self.download_all_check.disabled = True
                                 self.new_job_execution()
                             else:
                                 self.run_btn.disabled =True
+                                self.download_all_check.disabled = True
                                 self.resume_job_execution()
                         else:
                             self.text_area_job_run_logs.value += 'Job submit template validation failed, make sure you have {} file, and executable in {} folder \n'.format(self.job_submission_template, self.executable_folder)
@@ -443,6 +450,8 @@ class Job_Handler:
         try:
             self.text_area_job_run_logs.value += 'Starting a server stage for the executable. \n'
 
+            self.generated_job_dic['download_all_check'] = self.download_all_check.value
+
             if self.stage_server_with_program(self.ssh_attributes[:self.servers_to_use.value]):
                 
                 self.text_area_job_run_logs.value += 'Starting a new job execution. \n'
@@ -469,6 +478,8 @@ class Job_Handler:
     def resume_job_execution(self):
         try:
             self.text_area_job_run_logs.value += 'Checking job resume posibility. \n'
+
+            self.download_all_check.value = self.generated_job_dic['download_all_check']
             
             if self.load_server_details_from_config(self.ssh_attributes[:self.servers_to_use.value]):
                 
@@ -606,6 +617,37 @@ class Job_Handler:
                     if previous_job_status != 'C' and job_status == 'C':
                         self.generated_job_dic['completion_index'] += 1
                         self.generated_job_dic['used_servers'][server_name]['completed_jobs'] += 1
+                        
+
+                        # downloading data
+                        if self.generated_job_dic['download_all_check']:
+
+                            self.text_area_job_run_logs.value += 'Downloading job ({}) data on {} \n'.format(job_id, ssh_server.cluster_name.value)
+                            
+                            local_path = self.generated_job_dic['used_servers'][server_name]['local_path']
+                            local_sweep_path = os.path.join(local_path, self.sweep_folder).replace("\\", "/")
+
+                            # creating run folder
+                            if not os.path.exists(local_sweep_path):
+                                os.makedirs(local_sweep_path)
+
+                            job_paras = self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['parameters']
+                            dir_name = job_paras.strip().replace(" ", "_").replace("-", "") 
+                            local_job_dir_path = os.path.join(local_sweep_path, dir_name).replace("\\", "/")
+                            
+                            # creating job dir in local path
+                            if not os.path.exists(local_job_dir_path):
+                                os.makedirs(local_job_dir_path)
+                            
+
+                            sweep_folder_path = self.generated_job_dic['used_servers'][server_name]['sweep_folder_path']
+                            job_dir = os.path.join(sweep_folder_path, dir_name, "").replace("\\", "/")
+                            # Additing additional forward slash
+                            local_job_dir_path = os.path.join(local_job_dir_path, "").replace("\\", "/")
+
+                            ssh_server.ssh_connection.ssh.get_all_files(job_dir, local_job_dir_path)
+                            self.text_area_job_run_logs.value += 'Job dir {} download.\n'.format(dir_name) 
+
 
                     self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['status'] = job_status
                 
@@ -622,17 +664,46 @@ class Job_Handler:
             
             # Copy job submission pbs
             job_script_name = os.path.join(job_dir, dir_name).replace("\\", "/")
-            cmd = "cat " + os.path.join(root_path, self.job_submission_template).replace("\\", "/") + " | sed -e 's/ALL_USER_GIVEN_PARAMS/''" + job.strip() + "''/g' | sed -e 's/jobName/''"+ dir_name+"''/g' > "+ job_script_name
+
+            job_para_array = job.split()
+
+            #This is hardcode for shapes issue: Add D para if it is shapes
+            if 'shapes' in sweep_folder_path:
+                if '-R' in job_para_array:
+                    r_value = job_para_array[job_para_array.index('-R')+1]
+                    if str(r_value) == '10':
+                        job_para_array.append('-D')
+                        job_para_array.append('8')
+                    elif str(r_value) == '15':
+                        job_para_array.append('-D')
+                        job_para_array.append('12')
+                    elif str(r_value) == '20':
+                        job_para_array.append('-D')
+                        job_para_array.append('18')
+
+            # this is much better replace all parameters as they found
+            paramter_string_rep = ""
+            for i in range(0, len(job_para_array), 2):
+                paramter_string_rep +=  " | sed -e 's/USER"+job_para_array[i]+"-USER/''"+job_para_array[i+1]+ "''/g'"
+            paramter_string_rep += " | sed -e 's/ jobName/'' "+ dir_name+"''/g' > "
+
+            cmd = "cat " + os.path.join(root_path, self.job_submission_template).replace("\\", "/") + paramter_string_rep + job_script_name
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
 
             # qsub the job
             cmd = 'cd ' + job_dir + ' && ' + self.job_submit_cmd + ' ' + job_script_name
             self.text_area_job_run_logs.value += 'Job {} is submitting on {} ...\n'.format(dir_name, ssh_connection.cluster_name.value)
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
-            
-            jobID = std_out_st.split()[0]
-            
-            self.text_area_job_run_logs.value += 'Job Submitted with ID : {} \n'.format(jobID)
+
+            try:
+                jobID = std_out_st.split()[0]
+                self.text_area_job_run_logs.value += 'Job Submitted with ID : {} \n'.format(jobID)
+            except:
+                jobID = "Error"
+                self.text_area_job_run_logs.value += 'Job Submit failed, something is wrong with job submission. Check your jobsubmit file in the folder \n'
+                self.text_area_job_run_logs.value += std_error_st
+                pass
+                
             
             return jobID
             

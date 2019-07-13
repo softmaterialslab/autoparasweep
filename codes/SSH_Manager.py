@@ -166,7 +166,7 @@ class SSH_Manager:
     def __init__(self):
         
         self.num_of_ssh_connections = widgets.BoundedIntText(
-            value=2,
+            value=1,
             min=0,
             max=100,
             step=1,
@@ -199,16 +199,26 @@ class SSH_Manager:
 
         self.save_btn = widgets.Button(description='Save the key')
         
-        self.save_btn.on_click(self.save_ssh_key)        
+        self.save_btn.on_click(self.save_ssh_key)
+
+        self.connnect_all = widgets.Button(description='Connect all') 
+
+        self.connnect_all.on_click(self.connnect_all_clicked) 
+
+        self.check_queue_info = widgets.Button(description='Check queue info')   
+
+        self.check_queue_info.on_click(self.check_queu_info_click)
         
         
-        self.header_wigetbox = widgets.HBox([self.num_of_ssh_connections, self.ssh_description, self.sshkey_upload, self.save_btn])
+        self.header_wigetbox = widgets.HBox([self.num_of_ssh_connections, self.connnect_all,  self.check_queue_info, self.ssh_description, self.sshkey_upload, self.save_btn])
         
         #self.ssh_connections = [SSHAttributes()]
-        self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam')]
+        self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam'), SSHAttributes(username = 'vjadhao'), SSHAttributes(username = 'huanshen'), SSHAttributes(username = 'knilsson'), SSHAttributes(username = 'nbrunk'), SSHAttributes(username = 'lm44')]
         
         #self.attributes_widgets = widgets.VBox([self.ssh_connections[0].wigetbox])
-        self.attributes_widgets = widgets.VBox([self.ssh_connections[0].wigetbox, self.ssh_connections[1].wigetbox])
+        self.attributes_widgets = widgets.VBox([item.wigetbox for item in self.ssh_connections])
+
+        self.num_of_ssh_connections.value = len(self.ssh_connections)
         
         #self.footer_wigetbox = widgets.HBox([self.gen_config_btn])
 
@@ -271,4 +281,28 @@ class SSH_Manager:
         except Exception as e: print(e) 
 
 
+    def check_queu_info_click(self, change):
+        try:
+            for connection_ in self.ssh_connections:
+                command_str = 'qstat -u ' + connection_.username.value
+                if(connection_.ssh and connection_.ssh.sshclient):
+                    (std_out_st, std_error_st) = connection_.ssh.execute_command(command_str)
+                    connection_.ssh_log.value +=  std_out_st
+
+        except Exception as e: print(e)  
+
         
+    def connnect_all_clicked(self, change):
+        try:
+            if self.connnect_all.description == 'Connect all':
+                self.connnect_all.description = 'Disconnect all'
+            elif self.connnect_all.description == 'Disconnect all':
+                self.connnect_all.description = 'Connect all'
+                
+            self.text_area_for_ssh.value += 'Clicking all connect/disconnect buttons...\n'
+            for connection_ in self.ssh_connections:
+                connection_.onclick_coonect_btn({})
+                #connection_.wigetbox 
+            self.text_area_for_ssh.value += 'Clicking Done.\n'
+
+        except Exception as e: print(e)  

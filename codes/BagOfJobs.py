@@ -83,7 +83,11 @@ class BagOfJobs:
         try:
             param_string = ''
             for i, attribute in enumerate(self.attribute_list):
-                param_string += '-{} {:n} '.format(attribute, param_tuple[i])
+                if type(param_tuple[i]) == str:
+                    param_string += '-{} {} '.format(attribute, str(param_tuple[i]).strip())
+                else:
+                    param_string += '-{} {:n} '.format(attribute, param_tuple[i])
+
 
             return param_string
         except Exception as e: print(e)

@@ -1,0 +1,1 @@
+{"R": {"type": "set", "values": ["10"]}, "q": {"type": "set", "values": ["600"]}, "c": {"type": "set", "values": ["0.001", "0.005", "0.015"]}, "t": {"type": "set", "values": ["1.5"]}, "b": {"type": "set", "values": ["40"]}, "s": {"type": "set", "values": ["40"]}}
