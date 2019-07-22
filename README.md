@@ -58,6 +58,7 @@ You can install this from docker hub or github.
      ├── <data> # Required folder 3.
 ''' 
  * job_submit_template must contain following format for parameter identification. 
-  * Lets say you added a parameter called -R in step 02, the value for the parameter should be stated in the job script as **-R USER-R-USER** 
+  * Lets say you added a parameter called -R in step 02, the value for the parameter should be stated in the job script as:
+    **-R USER-R-USER** 
  
 
