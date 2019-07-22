@@ -127,8 +127,8 @@ class Job_Handler:
         self.job_submit_cmd = 'qsub'
         self.sweep_folder = 'sim_runs'
         
-        self.queue_check_interval = 60
-        self.queue_job_submit_interval = 5
+        self.queue_check_interval = 30
+        self.queue_job_submit_interval = 4
         
         group_area_layout=Layout(
             display='flex',
@@ -501,6 +501,11 @@ class Job_Handler:
                 self.text_area_job_run_logs.value += 'Execution aborted. \n'
         
         except Exception as e: print(e)
+
+    def set_total_progress(self, completion_index, total_jobs):
+        self.progress_bar.value = completion_index/total_jobs * 100.0
+        self.progress_value.value = str(completion_index)+' / '+str(total_jobs)
+
             
     def run_jobs_begin(self, ssh_server):   
         try:
@@ -538,9 +543,8 @@ class Job_Handler:
 
                     # monitor the server and get how many jobs are completed
                     #-----------------------------------------------------------
-                    self.progress_bar.value = completion_index/total_jobs * 100.0
-                    self.progress_value.value = str(completion_index)+' / '+str(total_jobs)
-                
+                    self.set_total_progress(completion_index, total_jobs)
+
                     if completion_index >= total_jobs:
                         #print('Came Gen Completed: '+server_name)
                         #This is ultimate exit
@@ -586,12 +590,12 @@ class Job_Handler:
                         
                     self.update_config()
             
-                time.sleep(self.queue_job_submit_interval)
-                
                 if sleep_var:
                     self.run_btn.disabled=False
                     self.run_btn.description='New Config'
                     time.sleep(self.queue_check_interval)
+                else:
+                    time.sleep(self.queue_job_submit_interval)
 
         except Exception as e: print(e)
 
@@ -608,17 +612,8 @@ class Job_Handler:
                     job_status = self.get_job_infor(ssh_server, job_id)
 
                     #print(job_status)
-
-                    if previous_job_status != 'R' and job_status == 'R':
-                        self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['start_time'] = str(datetime.datetime.now())
-                    elif previous_job_status != 'C' and job_status == 'C':
-                        self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['end_time'] = str(datetime.datetime.now())
-
                     if previous_job_status != 'C' and job_status == 'C':
-                        self.generated_job_dic['completion_index'] += 1
-                        self.generated_job_dic['used_servers'][server_name]['completed_jobs'] += 1
-                        
-
+                    
                         # downloading data
                         if self.generated_job_dic['download_all_check']:
 
@@ -646,11 +641,21 @@ class Job_Handler:
                             local_job_dir_path = os.path.join(local_job_dir_path, "").replace("\\", "/")
 
                             ssh_server.ssh_connection.ssh.get_all_files(job_dir, local_job_dir_path)
-                            self.text_area_job_run_logs.value += 'Job dir {} download.\n'.format(dir_name) 
+                            self.text_area_job_run_logs.value += 'Job dir {} downloaded.\n'.format(dir_name) 
 
+                        #If download successful update the indexes
+                        self.generated_job_dic['completion_index'] += 1
+                        self.set_total_progress(self.generated_job_dic['completion_index'], self.generated_job_dic['total_size_of_bag_of_jobs'])
+                        self.generated_job_dic['used_servers'][server_name]['completed_jobs'] += 1
+                        ssh_server.ssh_monitor_attributes.completed_jobs.value = self.generated_job_dic['used_servers'][server_name]['completed_jobs']
 
+                        self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['end_time'] = str(datetime.datetime.now())
+
+                    elif previous_job_status != 'R' and job_status == 'R':
+                        self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['start_time'] = str(datetime.datetime.now())
+                        
                     self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['status'] = job_status
-                
+                    
         except Exception as e: print(e)
             
     def run_a_job(self, root_path, executable_folder, sweep_folder_path, ssh_connection, job):

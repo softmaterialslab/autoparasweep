@@ -23,13 +23,22 @@ class SSH:
             
             #print ("Connecting to %s with username=%s..." %(hostname, username))
             self.ssh_private_key = ssh_private_key
+
+            self.connect_server()
+            
+        except Exception as e: print(e)
+
+
+    def connect_server(self):
+        try:
+           
             self.sshclient = paramiko.SSHClient()
             self.sshclient.load_system_host_keys()
             self.sshclient.set_missing_host_key_policy(paramiko.AutoAddPolicy()) 
             self.transport = paramiko.Transport((self.hostname, self.port))
                 
             if self.ssh_private_key is not None:
-                self.sshclient.connect(self.hostname, username=self.username, key_filename=self.ssh_private_key)
+                self.sshclient.connect(self.hostname, username=self.username, key_filename=self.ssh_private_key, timeout=1)
                 mykey = paramiko.RSAKey.from_private_key_file(self.ssh_private_key)
                 self.transport.connect(username=self.username, pkey = mykey)
             else:
@@ -37,15 +46,13 @@ class SSH:
                     self.sshclient.connect(self.hostname, username=self.username, password = self.server_password)
                     self.transport.auth_password(username = self.username, password = server_password, fallback=False)
                 else: raise Exception('Please provide either ssh_private_key or server_password')     
-            
-            #self.transport.set_keepalive(30) 
+    
+            #self.transport.set_keepalive(2) 
             #self.channel = self.sshclient.invoke_shell()
             self.sftp = paramiko.SFTPClient.from_transport(self.transport)
-            #self.sftp = self.sshclient.open_sftp()
-            #print("Connected...")
-            
-        except Exception as e: print(e)     
-            
+
+
+        except Exception as e: print(e)          
     
     def close_ssh(self):
         try:
@@ -56,8 +63,17 @@ class SSH:
             self.transport.close()
             
         except Exception as e: print(e)
+
+
+    def execute_command_dummy(self, cmd):
+        self.sshclient.exec_command(cmd) 
             
     def execute_command(self, cmd):
+
+        if not self.transport.is_active():
+            #print('Transport is not active, Reconnecting...')
+            self.connect_server()
+
         # execute a command in the server
         try:
             if self.sshclient:
@@ -70,22 +86,39 @@ class SSH:
                     stdout.close()
                     stderr.close()
                 return (std_out_st, std_error_st)
-        except Exception as e: print(e)
+        except Exception as e: 
+            print(e)
             
     def put_file(self, local_file, remote_file):
+
+        if not self.transport.is_active():
+            #print('Transport is not active, Reconnecting...')
+            self.connect_server()
+
         #upload of a file
         try:
             self.sftp.put(local_file, remote_file) 
-        except Exception as e: print(e)
+        except Exception as e: 
+            print(e)
+
 
     def put_all_files(self, local_path, remote_path):
+
+        if not self.transport.is_active():
+            #print('Transport is not active, Reconnecting...')
+            self.connect_server()
+
         #  recursively upload of a dir
         try:
             owd = os.getcwd() 
             os.chdir(os.path.split(local_path)[0])
             parent=os.path.split(local_path)[1]
+            exclude = set(["sim_runs"])
  
             for root, dirs, files in os.walk(parent, topdown=True):
+                #removing sim_runs folder
+                dirs[:] = [d for d in dirs if d not in exclude]
+                
                 try:
                     _path = os.path.join(remote_path, root).replace("\\", "/")
                     self.sftp.mkdir(_path)
@@ -106,12 +139,20 @@ class SSH:
         except Exception as e: 
             os.chdir(owd)
             print(e)
+
             
     def get_file(self, remote_file, local_file):
+
+        if not self.transport.is_active():
+            #print('Transport is not active, Reconnecting...')
+            self.connect_server()
+
         #download of a file
         try:
             self.sftp.get(remote_file, local_file)
-        except Exception as e: print(e)
+        except Exception as e: 
+            print(e)
+
     
     def sftp_walk(self, remote_path):
         path=remote_path
@@ -135,6 +176,11 @@ class SSH:
         #  recursively download of a dir
         # zip and download woulbe fatser: ssh user@host 'tar -cz /source/folder' | tar -xz
         try:
+
+            if not self.transport.is_active():
+                #print('Transport is not active, Reconnecting...')
+                self.connect_server()
+
             try:
                 __base_dir = os.path.split(remote_path)[1]  
                 root_dir = os.path.join(local_path, __base_dir).replace("\\", "/")

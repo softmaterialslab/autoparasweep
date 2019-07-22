@@ -15,6 +15,7 @@ module load boost/1.65.0
 module load gsl
 
 cd $PBS_O_WORKDIR
+chmod	777	np_shape_lab
 
 export OMP_NUM_THREADS=16
 
