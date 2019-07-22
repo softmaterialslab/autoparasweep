@@ -43,7 +43,7 @@ You can install this from docker hub or github.
   * Finally, click on the 'generate and save' button which would save your application configuration (this is what you just selected with ranges and sets), and the run configuration (this is the jobs generated from this process and saved with timestamp and application name). In the step 04 (in Tab 03) we will use this run configuration.
 
 ### Step 03: Tab 02 (Setup the program) :- Create a folder structure with staged executable
- * Here, upload a zip file which contains all the content required to run your program in the computing clusters.
+ * Upload a zip file which contains all the content required to run your program in the computing clusters.
 
  * Zip all your executable, infiles, outfiles and jobsubmit template similar to the following directory structure. Check confinement example provided in sweepfolder. if the folder or file shown with <>, it may have any name. otherwise it must have same name as shown. 
 ```
@@ -61,4 +61,9 @@ You can install this from docker hub or github.
   * Lets say you added a parameter called -R in step 02, the value for the parameter should be stated in the job script as:
     **-R USER-R-USER** 
  
-
+### Step 04: Tab 03 (Submit jobs)
+ * First thing you must see here is the connected servers with their connection name, remote path and the queue limit. Change the remote path and the maximum queue limit depending on the server policies and how much percentange you want to use.
+ * Next, select the run configuration from the 'Select run cofiguration' dropdown widget. This configuration was created in the step 02 and it should have your application name followed by timestamp of the creation.
+ * Then, select the staged program setup folder (using 'Program setup folder' dropdown) which you zipped and uploded in the step 03.
+ * Next, you have the option to reduce the number of severs to use as well as if needed you can turn off download data as they are completing.
+ * Finally, click on 
