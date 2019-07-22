@@ -43,7 +43,21 @@ You can install this from docker hub or github.
   * Finally, click on the 'generate and save' button which would save your application configuration (this is what you just selected with ranges and sets), and the run configuration (this is the jobs generated from this process and saved with timestamp and application name). In the step 04 (in Tab 03) we will use this run configuration.
 
 ### Step 03: Tab 02 (Setup the program) :- Create a folder structure with staged executable
- * 
+ * Here, upload a zip file which contains all the content required to run your program in the computing clusters.
 
+ * Zip all your executable, infiles, outfiles and jobsubmit template similar to the following directory structure. Check confinement example provided in sweepfolder. if the folder or file shown with <>, it may have any name. otherwise it must have same name as shown. 
 
+. 
+ ├── sweep_folder # All programs are put here. So the zip file you upload will eventually be put under this directory. 
+   ├── <Application_name> # This is the application name you select; this is the folder you want to zip and upload. 
+    ├── job_submit_template # Your job submit template must be just under your application name directory. 
+    ├── programs # This where you will put executable and required directories. 
+     ├── <executable> # Executable: can have any name. 
+     ├── <infiles> # Required folder 1. 
+     ├── <outfiles> # Required folder 2. 
+     ├── <data> # Required folder 3.
+ 
+ * job_submit_template must contain following format for parameter identification. 
+  * Lets say you added a parameter called -R in step 02, the value for the parameter should be stated in the job script as **-R USER-R-USER** 
+ 
 
