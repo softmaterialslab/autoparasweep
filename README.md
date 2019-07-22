@@ -46,7 +46,7 @@ You can install this from docker hub or github.
  * Here, upload a zip file which contains all the content required to run your program in the computing clusters.
 
  * Zip all your executable, infiles, outfiles and jobsubmit template similar to the following directory structure. Check confinement example provided in sweepfolder. if the folder or file shown with <>, it may have any name. otherwise it must have same name as shown. 
-'''
+```
 . 
  ├── sweep_folder # All programs are put here. So the zip file you upload will eventually be put under this directory. 
    ├── <Application_name> # This is the application name you select; this is the folder you want to zip and upload. 
@@ -56,7 +56,7 @@ You can install this from docker hub or github.
      ├── <infiles> # Required folder 1. 
      ├── <outfiles> # Required folder 2. 
      ├── <data> # Required folder 3.
-''' 
+```
  * job_submit_template must contain following format for parameter identification. 
   * Lets say you added a parameter called -R in step 02, the value for the parameter should be stated in the job script as:
     **-R USER-R-USER** 
