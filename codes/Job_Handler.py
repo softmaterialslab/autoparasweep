@@ -76,6 +76,8 @@ class ServerProgressAttributes:
         self.running_jobs = widgets.BoundedIntText(
             value=running_jobs,
             description='Running: ',
+            step=1,
+            max=100000,
             disabled=True,
             style=style,
         )
@@ -83,6 +85,7 @@ class ServerProgressAttributes:
         self.queued_jobs = widgets.BoundedIntText(
                 value=queued_jobs,
                 step=1,
+                max=100000,
                 description='Queued: ',
                 disabled=True,
                 style=style,
@@ -91,6 +94,7 @@ class ServerProgressAttributes:
         self.completed_jobs = widgets.BoundedIntText(
                 value=completed_jobs,
                 step=1,
+                max=100000,
                 description='Completed: ',
                 disabled=True,
                 style=style,
@@ -523,6 +527,7 @@ class Job_Handler:
                     running_jobs = self.get_queue_size(ssh_server, 'R')
                     ssh_server.ssh_monitor_attributes.text_area_server_logs.value = self.get_qstat_all(ssh_server)
 
+
                     server_name = ssh_server.cluster_name.value
                     self.generated_job_dic['used_servers'][server_name]['queued_jobs'] = queued_jobs
                     completed_jobs = self.generated_job_dic['used_servers'][server_name]['completed_jobs']
@@ -532,7 +537,6 @@ class Job_Handler:
                     run_index = self.generated_job_dic['run_index']
                     completion_index = self.generated_job_dic['completion_index']
                     max_job_per_server = self.generated_job_dic['used_servers'][server_name]['max_job_per_server']
-
 
                     #Update all job info
                     ssh_server.ssh_monitor_attributes.running_jobs.value = running_jobs
@@ -557,7 +561,7 @@ class Job_Handler:
                         break
                 
                 
-                    if queued_jobs < max_job_per_server and  run_index < total_jobs:
+                    if (queued_jobs + running_jobs) < max_job_per_server and  run_index < total_jobs:
                         # This is where we still want to submit jobs
                         #print('Came Gen Job exe: '+server_name)
                         root_path = self.generated_job_dic['used_servers'][server_name]['root_path']
