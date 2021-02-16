@@ -25,7 +25,7 @@ from codes.SSH import SSH
 from codes.BagOfJobs import BagOfJobs
 
 class ServerAttributes:
-    def __init__(self, cluster_name='kadu@bigred2.uits.iu.edu', remote_path = '/N/dc2/scratch/kadu/', max_job_per_server=500, ssh_connection = None ):
+    def __init__(self, cluster_name='kadu@bigred3.uits.iu.edu', remote_path = '/N/slate/kadu/', max_job_per_server=500, ssh_connection = None ):
         
         self.cluster_name = widgets.Text(
             value=cluster_name,
@@ -56,7 +56,7 @@ class ServerAttributes:
         self.attributes_widgets = widgets.HBox([self.cluster_name, self.remote_path, self.max_job_per_server])
 
 class ServerProgressAttributes:
-    def __init__(self, cluster_name='kadu@bigred2.uits.iu.edu', running_jobs=0, queued_jobs = 0, completed_jobs = 0 ):
+    def __init__(self, cluster_name='kadu@bigred3.uits.iu.edu', running_jobs=0, queued_jobs = 0, completed_jobs = 0 ):
         
         group_area_layout=Layout(
             display='flex',

@@ -26,7 +26,7 @@ from codes.BagOfJobs import BagOfJobs
 from ipyupload import FileUpload
 
 class SSHAttributes:
-    def __init__(self, hostname = 'bigred2.uits.iu.edu', username = 'kadu', server_password = None, ssh_private_key = None, port = 22 ):
+    def __init__(self, hostname = 'bigred3.uits.iu.edu', username = 'kadu', server_password = None, ssh_private_key = None, port = 22 ):
         
         self.ssh = None
         
@@ -213,7 +213,8 @@ class SSH_Manager:
         self.header_wigetbox = widgets.HBox([self.num_of_ssh_connections, self.connnect_all,  self.check_queue_info, self.ssh_description, self.sshkey_upload, self.save_btn])
         
         #self.ssh_connections = [SSHAttributes()]
-        self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam'), SSHAttributes(username = 'vjadhao'), SSHAttributes(username = 'huanshen'), SSHAttributes(username = 'knilsson'), SSHAttributes(username = 'nbrunk'), SSHAttributes(username = 'lm44')]
+        #self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam'), SSHAttributes(username = 'vjadhao'), SSHAttributes(username = 'huanshen'), SSHAttributes(username = 'knilsson'), SSHAttributes(username = 'nbrunk'), SSHAttributes(username = 'lm44')]
+        self.ssh_connections = [SSHAttributes(), SSHAttributes(username = 'nhewagam'), SSHAttributes(username = 'vjadhao')]
         
         #self.attributes_widgets = widgets.VBox([self.ssh_connections[0].wigetbox])
         self.attributes_widgets = widgets.VBox([item.wigetbox for item in self.ssh_connections])
