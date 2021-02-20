@@ -1,20 +1,22 @@
-#! /bin/bash
-#PBS -l	nodes=USER-nodes-USER:ppn=USER-ppn-USER,walltime=0:10:00
-#PBS -q	gpu
-#PBS -o	out.log
-#PBS -e	err.log
-#PBS -m	ae
-#PBS -M	kadu@iu.edu
-#PBS -N jobName
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=24
+#SBATCH --time=0:10:00
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --output=out.log
+#SBATCH --error=err.log
+#SBATCH --job-name=jobName
 
-# below are the modules you will need to compile the code on bigred2 (see README)
-# uncomment the following 3 lines to load the modules at the time of job launch
-module swap PrgEnv-cray PrgEnv-gnu
-module load boost/1.65.0
+# below are the modules you will need to compile the code on bigred3 (see README)
+######  Module commands #####
+module swap PrgEnv-intel PrgEnv-gnu
+module load boost/gnu
 module load gsl
 
-cd $PBS_O_WORKDIR
+cd $SLURM_SUBMIT_DIR
 
-export OMP_NUM_THREADS=USER-ppn-USER
+export OMP_NUM_THREADS=24
 
-time aprun -n USER-nodes-USER -d USER-ppn-USER ./md_simulation_confined_ions -S 10000000 -B 0.04 -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -d USER-d-USER -c USER-c-USER
+# the following is a test simulation to check things are working, it simulates 0.1 M of +1 and -1 ions of diameter 0.714 nm confined within 3 nm
+# -d refers to number of cores. this should match ppn in Line 2.
+time srun -n 1 -d 24 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 100000 -B 0.05

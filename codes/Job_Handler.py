@@ -128,8 +128,13 @@ class Job_Handler:
         self.executable_name = ''
         self.executable_folder = 'program'
         self.job_submission_template = 'job_submit_template'
-        self.job_submit_cmd = 'qsub'
+        self.job_submit_cmd = 'sbatch'
+        self.job_status_cmd = 'squeue'
+        self.job_status_running = 'R'
+        self.job_status_queued = 'PD'
+        self.job_status_completed = 'CD'
         self.sweep_folder = 'sim_runs'
+        self.job_status_map = {self.job_status_running: "Running", self.job_status_queued: "Queued", self.job_status_completed: "Completed"}
         
         self.queue_check_interval = 30
         self.queue_job_submit_interval = 4
@@ -253,7 +258,7 @@ class Job_Handler:
                     for con in self.ssh_manager.ssh_connections:
                         if con.ssh:
                             cluster_name_T = con.username.value +'@'+ con.hostname.value 
-                            remote_path = '/N/dc2/scratch/'+con.username.value+'/'
+                            remote_path = '/N/slate/'+con.username.value+'/'
                             self.ssh_attributes.append(ServerAttributes(cluster_name=cluster_name_T, remote_path = remote_path , max_job_per_server=500, ssh_connection= con))
                             self.ssh_attributes_widgets_items.append(self.ssh_attributes[-1].attributes_widgets)
                             self.active_ssh_cons += 1
@@ -407,9 +412,13 @@ class Job_Handler:
             self.enable_all()
 
  
-        except Exception as e: print(e)  
-            
-            
+        except Exception as e: print(e)
+
+    def convert_job_dir(self, job):
+        dir_name = "_".join([para if i%2 else para.replace("-", "") for i, para in enumerate(job.strip().split())])
+        dir_name_short = "_".join([para  for i,para in enumerate(job.strip().split()) if i%2])
+        return dir_name, dir_name_short 
+      
     def validate_job(self):
         try:
             file_path_job = os.path.join(self.local_path.value, self.job_submission_template) 
@@ -523,8 +532,8 @@ class Job_Handler:
                 
                 with self.lock:
                     #check queue size every iteration
-                    queued_jobs = self.get_queue_size(ssh_server, 'Q')
-                    running_jobs = self.get_queue_size(ssh_server, 'R')
+                    queued_jobs = self.get_queue_size(ssh_server, self.job_status_queued) # 'Q', 'PD'
+                    running_jobs = self.get_queue_size(ssh_server, self.job_status_running) # 'R'
                     ssh_server.ssh_monitor_attributes.text_area_server_logs.value = self.get_qstat_all(ssh_server)
 
 
@@ -611,12 +620,12 @@ class Job_Handler:
                 
                 previous_job_status = self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['status']
                 
-                if previous_job_status != 'C':
+                if previous_job_status != self.job_status_completed: # Completed: C or CD
                 
                     job_status = self.get_job_infor(ssh_server, job_id)
 
                     #print(job_status)
-                    if previous_job_status != 'C' and job_status == 'C':
+                    if previous_job_status != self.job_status_completed and job_status == self.job_status_completed:
                     
                         # downloading data
                         if self.generated_job_dic['download_all_check']:
@@ -631,7 +640,9 @@ class Job_Handler:
                                 os.makedirs(local_sweep_path)
 
                             job_paras = self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['parameters']
-                            dir_name = job_paras.strip().replace(" ", "_").replace("-", "") 
+                            
+                            #dir_name = job_paras.strip().replace(" ", "_").replace("-", "")
+                            dir_name, dir_name_short = self.convert_job_dir(job_paras)
                             local_job_dir_path = os.path.join(local_sweep_path, dir_name).replace("\\", "/")
                             
                             # creating job dir in local path
@@ -644,6 +655,8 @@ class Job_Handler:
                             # Additing additional forward slash
                             local_job_dir_path = os.path.join(local_job_dir_path, "").replace("\\", "/")
 
+                            #print(job_dir)
+                            #print(local_job_dir_path)
                             ssh_server.ssh_connection.ssh.get_all_files(job_dir, local_job_dir_path)
                             self.text_area_job_run_logs.value += 'Job dir {} downloaded.\n'.format(dir_name) 
 
@@ -655,18 +668,22 @@ class Job_Handler:
 
                         self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['end_time'] = str(datetime.datetime.now())
 
-                    elif previous_job_status != 'R' and job_status == 'R':
+                    elif previous_job_status != self.job_status_running and job_status == self.job_status_running:
                         self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['start_time'] = str(datetime.datetime.now())
                         
                     self.generated_job_dic['used_servers'][server_name]['bag_of_jobs_executed'][job_id]['status'] = job_status
                     
         except Exception as e: print(e)
-            
+
+         
     def run_a_job(self, root_path, executable_folder, sweep_folder_path, ssh_connection, job):
         try:
             jobID = ''
             # Make a new folder for parasweep
-            dir_name = job.strip().replace(" ", "_").replace("-", "")    
+            #dir_name = job.strip().replace(" ", "_").replace("-", "") # this remove negative sign from values as well
+            #dir_name = "_".join([para if i%2 else para.replace("-", "") for i, para in enumerate(job.strip().split())]) # this is way better 
+            #dir_name_short = "_".join([para  for i,para in enumerate(job.strip().split()) if i%2])
+            dir_name, dir_name_short = self.convert_job_dir(job)
             job_dir = os.path.join(sweep_folder_path, dir_name).replace("\\", "/")
             cmd = 'cp -a '+ os.path.join(root_path, executable_folder, '').replace("\\", "/") + ' ' + job_dir
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
@@ -693,19 +710,21 @@ class Job_Handler:
             # this is much better replace all parameters as they found
             paramter_string_rep = ""
             for i in range(0, len(job_para_array), 2):
-                paramter_string_rep +=  " | sed -e 's/USER"+job_para_array[i]+"-USER/''"+job_para_array[i+1]+ "''/g'"
-            paramter_string_rep += " | sed -e 's/ jobName/'' "+ dir_name+"''/g' > "
+                paramter_string_rep += " | sed -e 's/USER"+job_para_array[i]+"-USER/''"+job_para_array[i+1]+ "''/g'"
+            
+            paramter_string_rep += " | sed -e 's/jobName/''"+ dir_name_short+"''/g' > "
 
             cmd = "cat " + os.path.join(root_path, self.job_submission_template).replace("\\", "/") + paramter_string_rep + job_script_name
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
 
-            # qsub the job
+            # qsub/sbatch the job
             cmd = 'cd ' + job_dir + ' && ' + self.job_submit_cmd + ' ' + job_script_name
             self.text_area_job_run_logs.value += 'Job {} is submitting on {} ...\n'.format(dir_name, ssh_connection.cluster_name.value)
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
 
             try:
-                jobID = std_out_st.split()[0]
+                #Submitted batch job 1173090
+                jobID = std_out_st.split()[-1]
                 self.text_area_job_run_logs.value += 'Job Submitted with ID : {} \n'.format(jobID)
             except:
                 jobID = "Error"
@@ -728,7 +747,12 @@ class Job_Handler:
             #cmd = "qselect -s Q -u kadu | awk '{sum += 1} END {print sum}'"
             # This is the complex one but most useful and customizable: tail -n +6 removes header lines
             # $10 refers to 10th column
-            cmd =  "qstat -u {} | tail -n +6 | awk '{{if ($10==\"{}\") sum += 1}} END {{print sum}}'".format(username_, keyword)
+            # SGE to slurm: https://srcc.stanford.edu/sge-slurm-conversion
+            # SLURM codes: https://curc.readthedocs.io/en/latest/running-jobs/squeue-status-codes.html
+            # -h means no header: == tail -n +2 removes header lines
+            #Example: squeue -u kadu -h |  awk '{{if ($5=="PD") sum += 1}} END {{print sum}}'
+
+            cmd =  "{} -u {} -h | awk '{{if ($5==\"{}\") sum += 1}} END {{print sum}}'".format(self.job_status_cmd, username_, keyword)
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
             try:
                 digit = std_out_st.split()[0]
@@ -737,7 +761,7 @@ class Job_Handler:
             except:
                 pass
             
-            self.text_area_job_run_logs.value += 'Queue status of {} is {} : {} \n'.format(ssh_connection.cluster_name.value, keyword, number_of_jobs)
+            self.text_area_job_run_logs.value += 'Queue status of {} - {} ({}) : {} \n'.format(ssh_connection.cluster_name.value, self.job_status_map[keyword], keyword, number_of_jobs)
             
             return number_of_jobs
             
@@ -745,16 +769,17 @@ class Job_Handler:
             
     def get_job_infor(self, ssh_connection, job_id):
         try:
-            job_status = 'C'
+            job_status = self.job_status_completed #'C', or CD
             
             username_ = ssh_connection.cluster_name.value.split('@')[0]
-            cmd =  "qstat -u {} {} | tail -n +6 | awk '{{print $10}}'".format(username_, job_id)
+            #Example: squeue -u kadu --job 1173090 -h | awk '{{print $5}}'
+            cmd =  "{} -u {} --job {} -h | awk '{{print $5}}'".format(self.job_status_cmd, username_, job_id)
             #print(cmd)
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
             try:
                 job_status = std_out_st.split()[0]
                 if not job_status:
-                    job_status = 'C'
+                    job_status = self.job_status_completed #'C' or CD     
             except:
                 pass
             
@@ -765,7 +790,8 @@ class Job_Handler:
     def get_qstat_all(self, ssh_connection):
         try:
             username_ = ssh_connection.cluster_name.value.split('@')[0]
-            cmd =  "qstat -u {} | tail -n +4".format(username_)
+            #Example: squeue -u kadu -h, remove -h as we need the header to be displayed.
+            cmd =  "{} -u {}".format(self.job_status_cmd, username_)
             (std_out_st, std_error_st) = ssh_connection.ssh_connection.ssh.execute_command(cmd)
         
             return std_out_st
