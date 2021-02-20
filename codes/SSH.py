@@ -104,13 +104,15 @@ class SSH:
                    
         except Exception as e: 
             print(e)
+            output_ = None
             if self.attempts<self.MAX_ATTEMPTS:
                 self.attempts += 1
                 print("Reconnecting and Executing attempt: {}".format(self.attempts))
                 self.connect_server()
-                self.execute_command(cmd)
+                output_ = self.execute_command(cmd)
             #Reset the attempts
-            self.attempts = 0           
+            self.attempts = 0
+            return output_    
             
     def put_file(self, local_file, remote_file):
 
