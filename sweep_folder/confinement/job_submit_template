@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --ntasks-per-node=24
-#SBATCH --time=0:10:00
+#SBATCH --time=24:00:00
 #SBATCH --mail-type=FAIL,BEGIN,END
 #SBATCH --output=out.log
 #SBATCH --error=err.log
@@ -19,4 +19,4 @@ export OMP_NUM_THREADS=24
 
 # the following is a test simulation to check things are working, it simulates 0.1 M of +1 and -1 ions of diameter 0.714 nm confined within 3 nm
 # -d refers to number of cores. this should match ppn in Line 2.
-time srun -n 1 -d 24 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 100000 -B 0.05
+time srun -n 4 -d 24 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05
