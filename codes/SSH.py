@@ -11,6 +11,12 @@ class SSH:
     # ssh_client.put_all('source/dir','destination/path')
     # ssh_client.get_all('source/dir','destination/path')
     # ssh_client.execute_command('echo "ls"')
+
+    #from codes.SSH import SSH
+    #ssh_client = SSH('bigred3.uits.iu.edu','kadu', ssh_private_key='ssh-config/kadu_bigred')
+    #remote_path = "/N/slate/kadu/confinement/sim_runs/Z_5.6_p_1_n_-1_d_0.313_a_0.209_c_1.5_i_-0.005"
+    #local_path = "sweep_folder\\confinement\\sim_runs"
+    #ssh_client.get_all_files(remote_path, local_path)
     
     def __init__(self, hostname = 'bigred2.uits.iu.edu', username = 'kadu', server_password = None, ssh_private_key = None, port = 22):
     #User configurable settings 
@@ -25,6 +31,8 @@ class SSH:
             self.ssh_private_key = ssh_private_key
 
             self.connect_server()
+            self.attempts = 0
+            self.MAX_ATTEMPTS = 3
             
         except Exception as e: print(e)
 
@@ -47,6 +55,10 @@ class SSH:
                     self.transport.auth_password(username = self.username, password = server_password, fallback=False)
                 else: raise Exception('Please provide either ssh_private_key or server_password')     
     
+            
+            self.transport.default_window_size = paramiko.common.MAX_WINDOW_SIZE
+            self.transport.packetizer.REKEY_BYTES = pow(2, 40)
+            self.transport.packetizer.REKEY_PACKETS = pow(2, 40)
             #self.transport.set_keepalive(2) 
             #self.channel = self.sshclient.invoke_shell()
             self.sftp = paramiko.SFTPClient.from_transport(self.transport)
@@ -85,9 +97,20 @@ class SSH:
                     std_error_st += stderr.read().strip().decode("utf-8") + '\n'
                     stdout.close()
                     stderr.close()
+
+                #Reset the attempts
+                self.attempts = 0 
                 return (std_out_st, std_error_st)
+                   
         except Exception as e: 
             print(e)
+            if self.attempts<self.MAX_ATTEMPTS:
+                self.attempts += 1
+                print("Reconnecting and Executing attempt: {}".format(self.attempts))
+                self.connect_server()
+                self.execute_command(cmd)
+            #Reset the attempts
+            self.attempts = 0           
             
     def put_file(self, local_file, remote_file):
 
@@ -135,10 +158,22 @@ class SSH:
                     _path = os.path.join(remote_path, root, name).replace("\\", "/")
                     self.sftp.put(os.path.join(root, name),_path)
 
-            os.chdir(owd) 
+            os.chdir(owd)
+            #Reset the attempts
+            self.attempts = 0 
+
         except Exception as e: 
             os.chdir(owd)
             print(e)
+
+            if self.attempts<self.MAX_ATTEMPTS:
+                self.attempts += 1
+                print("Reconnecting and uploading attempt: {}".format(self.attempts))
+                self.connect_server()
+                self.put_all_files(local_path, remote_path)
+
+            #Reset the attempts
+            self.attempts = 0           
 
             
     def get_file(self, remote_file, local_file):
@@ -150,10 +185,10 @@ class SSH:
         #download of a file
         try:
             self.sftp.get(remote_file, local_file)
+        
         except Exception as e: 
             print(e)
 
-    
     def sftp_walk(self, remote_path):
         path=remote_path
         files=[]
@@ -207,4 +242,17 @@ class SSH:
                         #print(local_file_path_)
                         self.sftp.get(file_path_, local_file_path_)
 
-        except Exception as e: print(e)
+            #Reset the attempts
+            self.attempts = 0
+
+        except Exception as e: 
+            print(e)
+            # Trying for 3 times
+            if self.attempts<self.MAX_ATTEMPTS:
+                self.attempts += 1
+                print("Reconnecting and downloading attempt: {}".format(self.attempts))
+                self.connect_server()
+                self.get_all_files(remote_path, local_path)
+
+            #Reset the attempts
+            self.attempts = 0
