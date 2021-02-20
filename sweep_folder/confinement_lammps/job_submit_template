@@ -1,0 +1,30 @@
+#!/bin/bash
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=24
+#SBATCH --time=24:00:00
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --output=out.log
+#SBATCH --error=err.log
+#SBATCH --job-name=jobName
+
+# below are the modules you will need to compile the code on bigred3 (see README)
+######  Module commands for inhouse code and lammps #####
+module swap PrgEnv-intel PrgEnv-gnu
+module load boost/gnu
+module load gsl
+module load lammps/gnu/7Aug19
+
+
+cd $SLURM_SUBMIT_DIR
+
+export OMP_NUM_THREADS=1
+
+# the following is a test simulation to check things are working, it simulates 0.1 M of +1 and -1 ions of diameter 0.714 nm confined within 3 nm
+# -d refers to number of cores. this should match ppn in Line 2.
+#run-preprocessor
+time srun -n 1 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j true
+wait
+time srun -n 96 -d 1 lmp_mpi < in.lammps
+wait
+#run-postprocessor
+time srun -n 1 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j false
