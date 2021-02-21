@@ -61,7 +61,7 @@ You can install this from docker hub or Github.
   * Lets say you added a parameter called -R in step 02, the value for the parameter should be stated in the job script as:
     **-R USER-R-USER** 
  
-### Step 04: Tab 03 (Submit jobs)
+### Step 04: Tab 03 (Submit jobs) (Updated for slurm)
  * First thing you must see here is the connected servers with their connection name, remote path, and the queue limit. Change the remote path and the maximum queue limit depending on the server policies and how much percentage you want to use.
  * Next, select the run configuration from the 'Select run configuration' dropdown widget. This configuration was created in step 02, and it should have your application name followed by the timestamp of the creation.
  * Then, select the staged program setup folder (using 'Program setup folder' dropdown) which you zipped and uploaded in step 03.
