@@ -22,9 +22,9 @@ export OMP_NUM_THREADS=1
 # the following is a test simulation to check things are working, it simulates 0.1 M of +1 and -1 ions of diameter 0.714 nm confined within 3 nm
 # -d refers to number of cores. this should match ppn in Line 2.
 #run-preprocessor
-time srun -n 1 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j true
+time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j true
 wait
 time srun -n 96 -d 1 lmp_mpi < in.lammps
 wait
 #run-postprocessor
-time srun -n 1 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j false
+time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j false
