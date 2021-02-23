@@ -25,6 +25,6 @@ export OMP_NUM_THREADS=1
 time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j true
 wait
 time srun -n 96 -d 1 lmp_mpi < in.lammps
-wait
+#wait
 #run-postprocessor
-time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j false
+#time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j false
