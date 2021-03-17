@@ -3,6 +3,7 @@
 #SBATCH --ntasks-per-node=24
 #SBATCH --time=8:00:00
 #SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --mail-user=kadu@iu.edu
 #SBATCH --output=out.log
 #SBATCH --error=err.log
 #SBATCH --job-name=jobName
@@ -22,7 +23,9 @@ export OMP_NUM_THREADS=1
 # the following is a test simulation to check things are working, it simulates 0.1 M of +1 and -1 ions of diameter 0.714 nm confined within 3 nm
 # -d refers to number of cores. this should match ppn in Line 2.
 #run-preprocessor
-time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -J true -j true
+time srun -n 4 -d 1 ./md_simulation_confined_ions -Z USER-Z-USER -p USER-p-USER -n USER-n-USER -c USER-c-USER -d USER-d-USER -a USER-a-USER -i USER-i-USER -S 10000000 -B 0.05 -m 1000000 -J true -j true
+wait
+rm -f md_simulation_confined_ions
 wait
 time srun -n 96 -d 1 lmp_mpi < in.lammps
 #wait
